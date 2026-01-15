@@ -1,0 +1,131 @@
+<div class="table-container">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+    </ng-container>
+    <ng-container matColumnDef="surname">
+      <th mat-header-cell *matHeaderCellDef>Surname</th>
+      <td mat-cell *matCellDef="let element">{{ element.surname }}</td>
+    </ng-container>
+    <ng-container matColumnDef="seniority">
+      <th mat-header-cell *matHeaderCellDef>Seniority</th>
+      <td mat-cell *matCellDef="let element">{{ element.seniority }}</td>
+    </ng-container>
+    <ng-container matColumnDef="years">
+      <th mat-header-cell *matHeaderCellDef>Years of experience</th>
+      <td mat-cell *matCellDef="let element">{{ element.years }}</td>
+    </ng-container>
+    <ng-container matColumnDef="availability">
+      <th mat-header-cell *matHeaderCellDef>Availability</th>
+      <td mat-cell *matCellDef="let element">
+        @if (element.availability) {
+        <mat-icon
+          aria-hidden="false"
+          aria-label="true"
+          fontIcon="check"
+          color="primary"
+        ></mat-icon>
+        } @else {
+        <mat-icon
+          aria-hidden="false"
+          aria-label="false"
+          fontIcon="close"
+          color="warn"
+        ></mat-icon>
+        }
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let element">
+        <button
+          mat-mini-fab
+          color="primary"
+          aria-label="Example icon button with a menu icon"
+          (click)="editCandidate(element)"
+        >
+          <mat-icon>draw</mat-icon>
+        </button>
+        <button
+          mat-mini-fab
+          color="warn"
+          aria-label="Example icon button with a filter list icon"
+          class="delete-button"
+          (click)="deleteCandidate(element.id)"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+  <mat-paginator
+    [pageSizeOptions]="[5, 10, 20]"
+    showFirstLastButtons
+    aria-label="Select page of periodic elements"
+    class="mat-elevation-z8"
+  >
+  </mat-paginator>
+
+  <div class="add-candidate-container">
+    <form [formGroup]="candidateForm">
+      <h1>@if (!editingCandidateId) { Add } @else { Edit } Candidate</h1>
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input
+          type="name"
+          matInput
+          formControlName="name"
+          placeholder="Ex. John"
+        />
+        <mat-error> Name is <strong>required</strong> </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Surname</mat-label>
+        <input
+          type="surname"
+          matInput
+          formControlName="surname"
+          placeholder="Ex. Doe"
+        />
+        <mat-error> Surname is <strong>required</strong> </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Seniority</mat-label>
+        <select matNativeControl formControlName="seniority">
+          <option value="junior">Junior</option>
+          <option value="senior">Senior</option>
+        </select>
+        <mat-error> Seniority is <strong>required</strong> </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Years of experience</mat-label>
+        <input
+          type="number"
+          matInput
+          formControlName="years"
+          placeholder="Ex. 5"
+        />
+        <mat-error> Valid years are <strong>required</strong> </mat-error>
+      </mat-form-field>
+      <section class="availability">
+        <label>Availability*</label>
+        <mat-slide-toggle formControlName="availability">
+          Available
+        </mat-slide-toggle>
+      </section>
+    </form>
+    @if (!editingCandidateId) {
+    <button mat-raised-button (click)="addCandidate()">Add</button>
+    } @else {
+    <button mat-raised-button (click)="saveEditCandidate()" class="edit-button">
+      Edit
+    </button>
+    <button mat-raised-button (click)="cancelEditing()" color="warn">
+      Cancel
+    </button>
+    }
+  </div>
+</div>
