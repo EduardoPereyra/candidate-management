@@ -42,7 +42,7 @@ export class CandidatesTableComponent implements OnInit {
     'name',
     'surname',
     'seniority',
-    'years',
+    'yearsOfExperience',
     'availability',
     'actions',
   ];
@@ -55,7 +55,7 @@ export class CandidatesTableComponent implements OnInit {
     name: new FormControl('', [Validators.required]),
     surname: new FormControl('', [Validators.required]),
     seniority: new FormControl('', [Validators.required]),
-    years: new FormControl(1, [
+    yearsOfExperience: new FormControl(1, [
       Validators.required,
       Validators.min(0),
       Validators.max(80),
@@ -91,7 +91,7 @@ export class CandidatesTableComponent implements OnInit {
         name: this.candidateForm.value.name!,
         surname: this.candidateForm.value.surname!,
         seniority: this.candidateForm.value.seniority! as 'senior' | 'junior',
-        years: this.candidateForm.value.years!,
+        yearsOfExperience: this.candidateForm.value.yearsOfExperience!,
         availability: this.candidateForm.value.availability!,
       };
       this.dataSource.data = [...this.dataSource.data, newCandidate];
@@ -105,7 +105,7 @@ export class CandidatesTableComponent implements OnInit {
       name: candidate.name,
       surname: candidate.surname,
       seniority: candidate.seniority,
-      years: candidate.years,
+      yearsOfExperience: candidate.yearsOfExperience,
       availability: candidate.availability,
     });
   }
@@ -121,7 +121,7 @@ export class CandidatesTableComponent implements OnInit {
               seniority: this.candidateForm.value.seniority! as
                 | 'senior'
                 | 'junior',
-              years: this.candidateForm.value.years!,
+              yearsOfExperience: this.candidateForm.value.yearsOfExperience!,
               availability: this.candidateForm.value.availability!,
             }
           : candidate

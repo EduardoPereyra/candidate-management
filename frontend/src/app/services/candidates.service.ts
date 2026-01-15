@@ -15,7 +15,7 @@ export class CandidatesService {
         name: 'Belva',
         surname: 'Salomon',
         seniority: 'senior',
-        years: 11,
+        yearsOfExperience: 11,
         availability: true,
       },
       {
@@ -23,7 +23,7 @@ export class CandidatesService {
         name: 'Jobyna',
         surname: 'Budding',
         seniority: 'senior',
-        years: 1,
+        yearsOfExperience: 1,
         availability: false,
       },
       {
@@ -31,7 +31,7 @@ export class CandidatesService {
         name: 'Averyl',
         surname: 'Napoleone',
         seniority: 'senior',
-        years: 15,
+        yearsOfExperience: 15,
         availability: false,
       },
       {
@@ -39,7 +39,7 @@ export class CandidatesService {
         name: 'Melitta',
         surname: 'Heaffey',
         seniority: 'junior',
-        years: 1,
+        yearsOfExperience: 1,
         availability: false,
       },
       {
@@ -47,7 +47,7 @@ export class CandidatesService {
         name: 'Ursala',
         surname: 'Agates',
         seniority: 'junior',
-        years: 3,
+        yearsOfExperience: 3,
         availability: true,
       },
       {
@@ -55,7 +55,7 @@ export class CandidatesService {
         name: 'Wandie',
         surname: 'Kayes',
         seniority: 'junior',
-        years: 7,
+        yearsOfExperience: 7,
         availability: false,
       },
       {
@@ -63,7 +63,7 @@ export class CandidatesService {
         name: 'Witty',
         surname: 'Pennini',
         seniority: 'senior',
-        years: 9,
+        yearsOfExperience: 9,
         availability: true,
       },
       {
@@ -71,7 +71,7 @@ export class CandidatesService {
         name: 'Jeramie',
         surname: 'Bakesef',
         seniority: 'senior',
-        years: 14,
+        yearsOfExperience: 14,
         availability: true,
       },
       {
@@ -79,7 +79,7 @@ export class CandidatesService {
         name: 'Amandie',
         surname: 'Humphery',
         seniority: 'senior',
-        years: 8,
+        yearsOfExperience: 8,
         availability: false,
       },
       {
@@ -87,7 +87,7 @@ export class CandidatesService {
         name: 'Hope',
         surname: 'Keuning',
         seniority: 'junior',
-        years: 4,
+        yearsOfExperience: 4,
         availability: true,
       },
     ]);
