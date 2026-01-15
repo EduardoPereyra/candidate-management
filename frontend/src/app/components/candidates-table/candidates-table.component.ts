@@ -53,6 +53,7 @@ export class CandidatesTableComponent implements OnInit {
     []
   );
   editingCandidateId: number | null = null;
+  candidateFile: File | null = null;
 
   candidateForm = new FormBuilder().group({
     name: new FormControl('', [Validators.required]),
@@ -64,6 +65,11 @@ export class CandidatesTableComponent implements OnInit {
       Validators.max(80),
     ]),
     availability: new FormControl(true),
+  });
+  candidateByFileForm = new FormBuilder().group({
+    name: new FormControl('', [Validators.required]),
+    surname: new FormControl('', [Validators.required]),
+    file: new FormControl(null, [Validators.required]),
   });
 
   constructor(private candidatesService: CandidatesService) {}
@@ -110,6 +116,21 @@ export class CandidatesTableComponent implements OnInit {
     }
   }
 
+  addCandidateByFile() {
+    if (this.candidateByFileForm.valid) {
+      this.candidatesService
+        .addCandidateWithFile(
+          this.candidateByFileForm.value.name!,
+          this.candidateByFileForm.value.surname!,
+          this.candidateFile!
+        )
+        .subscribe((candidate) => {
+          this.dataSource.data = [...this.dataSource.data, candidate];
+          this.candidateByFileForm.reset();
+        });
+    }
+  }
+
   editCandidate(candidate: Candidate) {
     this.editingCandidateId = candidate.id;
     this.candidateForm.setValue({
@@ -147,5 +168,10 @@ export class CandidatesTableComponent implements OnInit {
   cancelEditing() {
     this.editingCandidateId = null;
     this.candidateForm.reset({ availability: true });
+  }
+
+  onFileSelected(event: Event): void {
+    const files = (event.target as HTMLInputElement).files;
+    this.candidateFile = files ? files[0] : null;
   }
 }

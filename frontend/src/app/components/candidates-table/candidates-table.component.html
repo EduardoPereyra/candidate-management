@@ -71,63 +71,118 @@
   >
   </mat-paginator>
 
-  <div class="add-candidate-container">
-    <form [formGroup]="candidateForm">
-      <h1>@if (!editingCandidateId) { Add } @else { Edit } Candidate</h1>
-      <mat-form-field>
-        <mat-label>Name</mat-label>
-        <input
-          type="name"
-          matInput
-          formControlName="name"
-          placeholder="Ex. John"
-        />
-        <mat-error> Name is <strong>required</strong> </mat-error>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>Surname</mat-label>
-        <input
-          type="surname"
-          matInput
-          formControlName="surname"
-          placeholder="Ex. Doe"
-        />
-        <mat-error> Surname is <strong>required</strong> </mat-error>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>Seniority</mat-label>
-        <select matNativeControl formControlName="seniority">
-          <option value="junior">Junior</option>
-          <option value="senior">Senior</option>
-        </select>
-        <mat-error> Seniority is <strong>required</strong> </mat-error>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>Years of experience</mat-label>
-        <input
-          type="number"
-          matInput
-          formControlName="yearsOfExperience"
-          placeholder="Ex. 5"
-        />
-        <mat-error> Valid years are <strong>required</strong> </mat-error>
-      </mat-form-field>
-      <section class="availability">
-        <label>Availability*</label>
-        <mat-slide-toggle formControlName="availability">
-          Available
-        </mat-slide-toggle>
-      </section>
-    </form>
+  <div class="add-containers">
+    <div class="add-candidate-container">
+      <form [formGroup]="candidateForm">
+        <h1>@if (!editingCandidateId) { Add } @else { Edit } Candidate</h1>
+        <mat-form-field>
+          <mat-label>Name</mat-label>
+          <input
+            type="name"
+            matInput
+            formControlName="name"
+            placeholder="Ex. John"
+          />
+          <mat-error> Name is <strong>required</strong> </mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Surname</mat-label>
+          <input
+            type="surname"
+            matInput
+            formControlName="surname"
+            placeholder="Ex. Doe"
+          />
+          <mat-error> Surname is <strong>required</strong> </mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Seniority</mat-label>
+          <select matNativeControl formControlName="seniority">
+            <option value="junior">Junior</option>
+            <option value="senior">Senior</option>
+          </select>
+          <mat-error> Seniority is <strong>required</strong> </mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Years of experience</mat-label>
+          <input
+            type="number"
+            matInput
+            formControlName="yearsOfExperience"
+            placeholder="Ex. 5"
+          />
+          <mat-error> Valid years are <strong>required</strong> </mat-error>
+        </mat-form-field>
+        <section class="availability">
+          <label>Availability*</label>
+          <mat-slide-toggle formControlName="availability">
+            Available
+          </mat-slide-toggle>
+        </section>
+      </form>
+      @if (!editingCandidateId) {
+      <button mat-raised-button (click)="addCandidate()">Add</button>
+      } @else {
+      <button
+        mat-raised-button
+        (click)="saveEditCandidate()"
+        class="edit-button"
+      >
+        Edit
+      </button>
+      <button mat-raised-button (click)="cancelEditing()" color="warn">
+        Cancel
+      </button>
+      }
+    </div>
     @if (!editingCandidateId) {
-    <button mat-raised-button (click)="addCandidate()">Add</button>
-    } @else {
-    <button mat-raised-button (click)="saveEditCandidate()" class="edit-button">
-      Edit
-    </button>
-    <button mat-raised-button (click)="cancelEditing()" color="warn">
-      Cancel
-    </button>
+    <div class="add-candidate-container">
+      <form [formGroup]="candidateByFileForm">
+        <h1>Add Candidate By File</h1>
+        <mat-form-field>
+          <mat-label>Name</mat-label>
+          <input
+            type="name"
+            matInput
+            formControlName="name"
+            placeholder="Ex. John"
+          />
+          <mat-error> Name is <strong>required</strong> </mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Surname</mat-label>
+          <input
+            type="surname"
+            matInput
+            formControlName="surname"
+            placeholder="Ex. Doe"
+          />
+          <mat-error> Surname is <strong>required</strong> </mat-error>
+        </mat-form-field>
+        <div class="input-file-container">
+          <button #file mat-flat-button color="accent">Attach file</button>
+          <div>
+            <input
+              #myInput
+              formControlName="file"
+              id="file"
+              name="file"
+              (change)="onFileSelected($event)"
+              type="file"
+              accept=".xlsx"
+            />
+            <p>{{ candidateFile?.name }}</p>
+          </div>
+        </div>
+      </form>
+      <button
+        mat-raised-button
+        (click)="addCandidateByFile()"
+        class="add-button"
+      >
+        Add
+      </button>
+    </div>
     }
   </div>
 </div>

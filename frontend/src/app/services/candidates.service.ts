@@ -32,4 +32,18 @@ export class CandidatesService {
     const apiUrl = `${environment.apiUrl}/candidates/${candidateId}`;
     return this.http.delete<void>(apiUrl);
   }
+
+  public addCandidateWithFile(
+    name: string,
+    surname: string,
+    file: File
+  ): Observable<Candidate> {
+    const apiUrl = environment.apiUrl + '/candidates/upload';
+    const formData = new FormData();
+    formData.append('excelFile', file);
+    formData.append('name', name);
+    formData.append('surname', surname);
+
+    return this.http.post<Candidate>(apiUrl, formData);
+  }
 }
