@@ -8,3 +8,11 @@ export interface Candidate {
   yearsOfExperience: number;
   availability: boolean;
 }
+
+export interface CandidateDTO {
+  name: string;
+  surname: string;
+  seniority: 'senior' | 'junior'; //Seniority;
+  yearsOfExperience: number;
+  availability: boolean;
+}

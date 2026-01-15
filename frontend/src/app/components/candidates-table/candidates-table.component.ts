@@ -11,11 +11,12 @@ import {
 } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Candidate } from '../../interfaces/candidate';
+import { Candidate, CandidateDTO } from '../../interfaces/candidate';
 import { CommonModule } from '@angular/common';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { CandidatesService } from '../../services/candidates.service';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-candidates-table',
@@ -31,7 +32,9 @@ import { CandidatesService } from '../../services/candidates.service';
     CommonModule,
     MatSlideToggleModule,
     MatPaginatorModule,
+    HttpClientModule,
   ],
+  providers: [CandidatesService],
   templateUrl: './candidates-table.component.html',
   styleUrl: './candidates-table.component.scss',
 })
@@ -66,7 +69,7 @@ export class CandidatesTableComponent implements OnInit {
   constructor(private candidatesService: CandidatesService) {}
 
   ngOnInit(): void {
-    this.candidatesService.getCandidatesMock().subscribe((candidates) => {
+    this.candidatesService.getCandidates().subscribe((candidates) => {
       this.dataSource = new MatTableDataSource<Candidate>(candidates);
     });
   }
@@ -76,25 +79,33 @@ export class CandidatesTableComponent implements OnInit {
   }
 
   deleteCandidate(id: number) {
-    this.dataSource.data = this.dataSource.data.filter(
-      (candidate) => candidate.id !== id
+    this.candidatesService.deleteCandidate(id).subscribe(
+      () => {
+        this.dataSource.data = this.dataSource.data.filter(
+          (candidate) => candidate.id !== id
+        );
+      },
+      (error) => {
+        console.error('Error deleting candidate:', error);
+      }
     );
   }
 
   addCandidate() {
     if (this.candidateForm.valid) {
-      const newCandidate: Candidate = {
-        id:
-          this.dataSource.data.length > 0
-            ? Math.max(...this.dataSource.data.map((c) => c.id)) + 1
-            : 1,
+      const newCandidate: CandidateDTO = {
         name: this.candidateForm.value.name!,
         surname: this.candidateForm.value.surname!,
         seniority: this.candidateForm.value.seniority! as 'senior' | 'junior',
         yearsOfExperience: this.candidateForm.value.yearsOfExperience!,
         availability: this.candidateForm.value.availability!,
       };
-      this.dataSource.data = [...this.dataSource.data, newCandidate];
+      this.candidatesService
+        .addCandidate(newCandidate)
+        .subscribe((candidate) => {
+          this.dataSource.data = [...this.dataSource.data, candidate];
+          this.candidateForm.reset({ availability: true });
+        });
       this.candidateForm.reset({ availability: true });
     }
   }
@@ -112,21 +123,24 @@ export class CandidatesTableComponent implements OnInit {
 
   saveEditCandidate() {
     if (this.candidateForm.valid && this.editingCandidateId !== null) {
-      this.dataSource.data = this.dataSource.data.map((candidate) =>
-        candidate.id === this.editingCandidateId
-          ? {
-              ...candidate,
-              name: this.candidateForm.value.name!,
-              surname: this.candidateForm.value.surname!,
-              seniority: this.candidateForm.value.seniority! as
-                | 'senior'
-                | 'junior',
-              yearsOfExperience: this.candidateForm.value.yearsOfExperience!,
-              availability: this.candidateForm.value.availability!,
-            }
-          : candidate
-      );
-      this.cancelEditing();
+      const updatedCandidate: CandidateDTO = {
+        name: this.candidateForm.value.name!,
+        surname: this.candidateForm.value.surname!,
+        seniority: this.candidateForm.value.seniority! as 'senior' | 'junior',
+        yearsOfExperience: this.candidateForm.value.yearsOfExperience!,
+        availability: this.candidateForm.value.availability!,
+      };
+
+      this.candidatesService
+        .updateCandidate(this.editingCandidateId, updatedCandidate)
+        .subscribe(() => {
+          this.dataSource.data = this.dataSource.data.map((candidate) =>
+            candidate.id === this.editingCandidateId
+              ? { ...candidate, ...updatedCandidate }
+              : candidate
+          );
+          this.cancelEditing();
+        });
     }
   }
 
