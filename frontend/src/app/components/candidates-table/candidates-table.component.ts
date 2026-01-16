@@ -77,11 +77,8 @@ export class CandidatesTableComponent implements OnInit {
   ngOnInit(): void {
     this.candidatesService.getCandidates().subscribe((candidates) => {
       this.dataSource = new MatTableDataSource<Candidate>(candidates);
+      this.dataSource.paginator = this.paginator;
     });
-  }
-
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
   }
 
   deleteCandidate(id: number) {
@@ -131,6 +128,7 @@ export class CandidatesTableComponent implements OnInit {
         .subscribe((candidate) => {
           this.dataSource.data = [...this.dataSource.data, candidate];
           this.candidateByFileForm.reset();
+          this.candidateFile = null;
         });
     }
   }
