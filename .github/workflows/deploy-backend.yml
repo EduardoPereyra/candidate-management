@@ -19,9 +19,9 @@ jobs:
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install Dependencies with legacy-peer-deps
+      - name: Install Dependencies
         working-directory: ./backend
-        run: npm i --omit=dev --legacy-peer-deps
+        run: npm ci
 
       - name: Build
         working-directory: ./backend
