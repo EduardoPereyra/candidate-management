@@ -85,15 +85,19 @@ export class CandidatesTableComponent implements OnInit {
   }
 
   deleteCandidate(id: number) {
-    this.candidatesService.deleteCandidate(id).subscribe(
-      () => {
-        this.dataSource.data = this.dataSource.data.filter(
-          (candidate) => candidate.id !== id
-        );
+    this.candidatesService.deleteCandidate(id).subscribe({
+      next: () => {
+        this.localDelete(id);
       },
-      (error) => {
+      error: (error) => {
         console.error('Error deleting candidate:', error);
-      }
+      },
+    });
+  }
+
+  localDelete(id: number) {
+    this.dataSource.data = this.dataSource.data.filter(
+      (candidate) => candidate.id !== id
     );
   }
 
