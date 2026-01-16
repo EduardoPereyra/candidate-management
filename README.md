@@ -155,5 +155,3 @@ CREATE TABLE candidates (
 **Note**: Technical test application for candidate management with Excel file processing.
 
 **Start in 5 minutes**: Setup database → Install dependencies → Run both servers → Open `localhost:4200`
-
-test
