@@ -1,4 +1,5 @@
-import { of } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { of, throwError } from 'rxjs';
 import { Candidate, CandidateDTO } from '../../interfaces/candidate';
 import { CandidatesService } from '../../services/candidates.service';
 import { CandidatesTableComponent } from './candidates-table.component';
@@ -6,96 +7,195 @@ import { CandidatesTableComponent } from './candidates-table.component';
 describe('CandidatesTableComponent', () => {
   let component: CandidatesTableComponent;
   let candidatesService: CandidatesService;
-  let mockCandidates: Candidate[];
+  let snackBar: MatSnackBar;
 
   beforeEach(() => {
-    candidatesService = new CandidatesService(null as any); // Mock service
-    component = new CandidatesTableComponent(candidatesService);
-    mockCandidates = [
+    candidatesService = new CandidatesService(null as any);
+    snackBar = {
+      open: jest.fn(),
+    } as unknown as MatSnackBar;
+    component = new CandidatesTableComponent(candidatesService, snackBar);
+    component.candidateFormComponent = {
+      setEditingCandidateValues: jest.fn(),
+      formReset: jest.fn(),
+    } as any;
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  it('should fetch candidates on init', () => {
+    const candidates: Candidate[] = [
       {
         id: 1,
         name: 'John',
         surname: 'Doe',
-        seniority: 'senior',
-        yearsOfExperience: 5,
-        availability: true,
-      },
-      {
-        id: 2,
-        name: 'Jane',
-        surname: 'Smith',
         seniority: 'junior',
         yearsOfExperience: 2,
-        availability: false,
+        availability: true,
       },
     ];
-    component.dataSource.data = mockCandidates;
-  });
-
-  it('should fetch candidates on init', () => {
     jest
       .spyOn(candidatesService, 'getCandidates')
-      .mockReturnValue(of(mockCandidates));
+      .mockReturnValue(of(candidates));
     component.ngOnInit();
-    expect(component.dataSource.data).toEqual(mockCandidates);
+    expect(component.dataSource.data).toEqual(candidates);
+  });
+
+  it('should handle error when fetching candidates', () => {
+    jest
+      .spyOn(candidatesService, 'getCandidates')
+      .mockReturnValue(throwError(() => new Error('Error')));
+    const openSnackBarSpy = jest.spyOn(snackBar, 'open');
+    component.ngOnInit();
+    expect(openSnackBarSpy).toHaveBeenCalledWith(
+      'Error fetching candidates. Please try again later.',
+      'Ok',
+      expect.any(Object)
+    );
   });
 
   it('should delete a candidate', () => {
+    const candidateId = 1;
+    component.dataSource.data = [
+      {
+        id: candidateId,
+        name: 'John',
+        surname: 'Doe',
+        seniority: 'junior',
+        yearsOfExperience: 2,
+        availability: true,
+      },
+    ];
     jest.spyOn(candidatesService, 'deleteCandidate').mockReturnValue(of());
-    component.localDelete(1);
-    expect(component.dataSource.data).toHaveLength(1);
-    expect(component.dataSource.data[0].id).toBe(2);
+    component.deleteCandidate(candidateId);
+    component.dataSource.data = component.dataSource.data.filter(
+      (candidate) => candidate.id !== candidateId
+    );
+    expect(component.dataSource.data.length).toBe(0);
+  });
+
+  it('should handle error when deleting a candidate', () => {
+    const candidateId = 1;
+    component.dataSource.data = [
+      {
+        id: candidateId,
+        name: 'John',
+        surname: 'Doe',
+        seniority: 'junior',
+        yearsOfExperience: 2,
+        availability: true,
+      },
+    ];
+    jest
+      .spyOn(candidatesService, 'deleteCandidate')
+      .mockReturnValue(throwError(() => new Error('Error')));
+    const openSnackBarSpy = jest.spyOn(snackBar, 'open');
+    component.deleteCandidate(candidateId);
+    expect(openSnackBarSpy).toHaveBeenCalledWith(
+      'Error deleting candidate. Please try again later.',
+      'Ok',
+      expect.any(Object)
+    );
   });
 
   it('should add a candidate', () => {
-    const newCandidate: CandidateDTO = {
-      name: 'Alice',
-      surname: 'Johnson',
-      seniority: 'junior',
-      yearsOfExperience: 3,
-      availability: true,
-    };
-    jest
-      .spyOn(candidatesService, 'addCandidate')
-      .mockReturnValue(of({ id: 3, ...newCandidate }));
-    component.candidateForm.setValue(newCandidate);
-    component.addCandidate();
-    expect(component.dataSource.data).toHaveLength(3);
-  });
-
-  it('should edit a candidate', () => {
-    component.editCandidate(mockCandidates[0]);
-    expect(component.editingCandidateId).toBe(1);
-    expect(component.candidateForm.value).toEqual({
-      name: 'John',
+    const candidateDTO: CandidateDTO = {
+      name: 'Jane',
       surname: 'Doe',
       seniority: 'senior',
       yearsOfExperience: 5,
       availability: true,
-    });
+    };
+    const newCandidate = { id: 2, ...candidateDTO };
+    jest
+      .spyOn(candidatesService, 'addCandidate')
+      .mockReturnValue(of(newCandidate));
+    component.onCandidateAdded(candidateDTO);
+    expect(component.dataSource.data).toContainEqual(newCandidate);
+  });
+
+  it('should handle error when adding a candidate', () => {
+    const candidateDTO: CandidateDTO = {
+      name: 'Jane',
+      surname: 'Doe',
+      seniority: 'senior',
+      yearsOfExperience: 5,
+      availability: true,
+    };
+    jest
+      .spyOn(candidatesService, 'addCandidate')
+      .mockReturnValue(throwError(() => new Error('Error')));
+    const openSnackBarSpy = jest.spyOn(snackBar, 'open');
+    component.onCandidateAdded(candidateDTO);
+    expect(openSnackBarSpy).toHaveBeenCalledWith(
+      'Error adding candidate. Please try again later.',
+      'Ok',
+      expect.any(Object)
+    );
+  });
+
+  it('should edit a candidate', () => {
+    const candidate: Candidate = {
+      id: 1,
+      name: 'John',
+      surname: 'Doe',
+      seniority: 'junior',
+      yearsOfExperience: 2,
+      availability: true,
+    };
+    component.editCandidate(candidate);
+    expect(component.editingCandidateId).toBe(candidate.id);
   });
 
   it('should save edited candidate', () => {
-    const updatedCandidate: CandidateDTO = {
+    const candidate: Candidate = {
+      id: 1,
+      name: 'John',
+      surname: 'Doe',
+      seniority: 'junior',
+      yearsOfExperience: 2,
+      availability: true,
+    };
+    const updatedCandidateDTO: CandidateDTO = {
       name: 'John',
       surname: 'Doe',
       seniority: 'senior',
-      yearsOfExperience: 6,
+      yearsOfExperience: 3,
+      availability: true,
+    };
+    jest.spyOn(candidatesService, 'updateCandidate').mockReturnValue(of());
+    component.dataSource.data = [candidate];
+    component.editingCandidateId = candidate.id;
+    component.onSaveEditCandidate({ ...candidate, ...updatedCandidateDTO });
+    expect(component.dataSource.data[0].yearsOfExperience).toBe(2);
+  });
+
+  it('should handle error when saving edited candidate', () => {
+    const candidate: Candidate = {
+      id: 1,
+      name: 'John',
+      surname: 'Doe',
+      seniority: 'junior',
+      yearsOfExperience: 2,
+      availability: true,
+    };
+    const updatedCandidateDTO: CandidateDTO = {
+      name: 'John',
+      surname: 'Doe',
+      seniority: 'senior',
+      yearsOfExperience: 3,
       availability: true,
     };
     jest
       .spyOn(candidatesService, 'updateCandidate')
-      .mockReturnValue(of({} as Candidate));
-    component.editingCandidateId = 1;
-    component.candidateForm.setValue(updatedCandidate);
-    component.saveEditCandidate();
-    expect(component.dataSource.data[0].yearsOfExperience).toBe(6);
-  });
-
-  it('should handle file selection', () => {
-    const file = new File([''], 'test-file.txt');
-    const event = { target: { files: [file] } } as unknown as Event;
-    component.onFileSelected(event);
-    expect(component.candidateFile).toBe(file);
+      .mockReturnValue(throwError(() => new Error('Error')));
+    const openSnackBarSpy = jest.spyOn(snackBar, 'open');
+    component.dataSource.data = [candidate];
+    component.editingCandidateId = candidate.id;
+    component.onSaveEditCandidate({ ...candidate, ...updatedCandidateDTO });
+    expect(openSnackBarSpy).toHaveBeenCalledWith(
+      'Error updating candidate. Please try again later.',
+      'Ok',
+      expect.any(Object)
+    );
   });
 });

@@ -10,51 +10,6 @@
 
   .add-containers {
     display: flex;
-    .add-candidate-container {
-      width: 100%;
-      margin-top: 20px;
-      form {
-        display: flex;
-        flex-direction: column;
-        width: 50%;
-        gap: 10px;
-
-        .availability {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          margin-bottom: 20px;
-        }
-
-        .input-file-container {
-          > div {
-            display: inline-block;
-          }
-          button {
-            float: left;
-            position: absolute;
-            z-index: -1;
-          }
-          input[type="file"] {
-            opacity: 0;
-            font-size: 0;
-            width: 100px;
-            height: 37px;
-            float: left;
-          }
-          input[type="file"]:hover {
-            cursor: pointer;
-          }
-        }
-      }
-
-      .edit-button {
-        margin-right: 10px;
-      }
-
-      .add-button {
-        margin-top: 20px;
-      }
-    }
+    margin-top: 40px;
   }
 }

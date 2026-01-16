@@ -135,4 +135,102 @@ describe('CandidatesService', () => {
     expect(req.request.method).toBe('POST');
     req.flush(addedCandidate);
   });
+
+  it('should handle error when fetching candidates', () => {
+    const errorMessage = '404 error';
+
+    service.getCandidates().subscribe(
+      () => fail('expected an error, not candidates'),
+      (error) => {
+        expect(error.status).toBe(404);
+        expect(error.message).toContain(errorMessage);
+      }
+    );
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/candidates`);
+    req.flush(errorMessage, { status: 404, statusText: 'Not Found' });
+  });
+
+  it('should handle error when adding a candidate', () => {
+    const newCandidate: CandidateDTO = {
+      name: 'John',
+      surname: 'Doe',
+      seniority: 'senior',
+      yearsOfExperience: 0,
+      availability: false,
+    };
+    const errorMessage = '400 error';
+
+    service.addCandidate(newCandidate).subscribe(
+      () => fail('expected an error, not a candidate'),
+      (error) => {
+        expect(error.status).toBe(400);
+        expect(error.message).toContain(errorMessage);
+      }
+    );
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/candidates`);
+    req.flush(errorMessage, { status: 400, statusText: 'Bad Request' });
+  });
+
+  it('should handle error when updating a candidate', () => {
+    const candidateId = 1;
+    const updatedCandidate: CandidateDTO = {
+      name: 'John',
+      surname: 'Smith',
+      seniority: 'senior',
+      yearsOfExperience: 0,
+      availability: false,
+    };
+    const errorMessage = '404 error';
+
+    service.updateCandidate(candidateId, updatedCandidate).subscribe(
+      () => fail('expected an error, not an updated candidate'),
+      (error) => {
+        expect(error.status).toBe(404);
+        expect(error.message).toContain(errorMessage);
+      }
+    );
+
+    const req = httpMock.expectOne(
+      `${environment.apiUrl}/candidates/${candidateId}`
+    );
+    req.flush(errorMessage, { status: 404, statusText: 'Not Found' });
+  });
+
+  it('should handle error when deleting a candidate', () => {
+    const candidateId = 1;
+    const errorMessage = '404 error';
+
+    service.deleteCandidate(candidateId).subscribe(
+      () => fail('expected an error, not a response'),
+      (error) => {
+        expect(error.status).toBe(404);
+        expect(error.message).toContain(errorMessage);
+      }
+    );
+
+    const req = httpMock.expectOne(
+      `${environment.apiUrl}/candidates/${candidateId}`
+    );
+    req.flush(errorMessage, { status: 404, statusText: 'Not Found' });
+  });
+
+  it('should handle error when adding a candidate with file', () => {
+    const name = 'John';
+    const surname = 'Doe';
+    const file = new File([''], 'test.xlsx');
+    const errorMessage = '400 error';
+
+    service.addCandidateWithFile(name, surname, file).subscribe(
+      () => fail('expected an error, not a candidate'),
+      (error) => {
+        expect(error.status).toBe(400);
+        expect(error.message).toContain(errorMessage);
+      }
+    );
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/candidates/upload`);
+    req.flush(errorMessage, { status: 400, statusText: 'Bad Request' });
+  });
 });

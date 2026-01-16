@@ -2,13 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import {
-  FormControl,
-  Validators,
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Candidate, CandidateDTO } from '../../interfaces/candidate';
@@ -17,6 +11,9 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { CandidatesService } from '../../services/candidates.service';
 import { HttpClientModule } from '@angular/common/http';
+import { CandidateFormComponent } from '../candidate-form/candidate-form.component';
+import { CandidateFormWithFileComponent } from '../candidate-form-with-file/candidate-form-with-file.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-candidates-table',
@@ -33,6 +30,8 @@ import { HttpClientModule } from '@angular/common/http';
     MatSlideToggleModule,
     MatPaginatorModule,
     HttpClientModule,
+    CandidateFormComponent,
+    CandidateFormWithFileComponent,
   ],
   providers: [CandidatesService],
   templateUrl: './candidates-table.component.html',
@@ -41,6 +40,12 @@ import { HttpClientModule } from '@angular/common/http';
 export class CandidatesTableComponent implements OnInit {
   @ViewChild(MatPaginator)
   paginator: MatPaginator = {} as MatPaginator;
+  @ViewChild(CandidateFormComponent)
+  candidateFormComponent: CandidateFormComponent = {} as CandidateFormComponent;
+  @ViewChild(CandidateFormWithFileComponent)
+  candidateFormWithFileComponent: CandidateFormWithFileComponent =
+    {} as CandidateFormWithFileComponent;
+
   displayedColumns: string[] = [
     'name',
     'surname',
@@ -53,31 +58,22 @@ export class CandidatesTableComponent implements OnInit {
     []
   );
   editingCandidateId: number | null = null;
-  candidateFile: File | null = null;
 
-  candidateForm = new FormBuilder().group({
-    name: new FormControl('', [Validators.required]),
-    surname: new FormControl('', [Validators.required]),
-    seniority: new FormControl('', [Validators.required]),
-    yearsOfExperience: new FormControl(1, [
-      Validators.required,
-      Validators.min(0),
-      Validators.max(80),
-    ]),
-    availability: new FormControl(true),
-  });
-  candidateByFileForm = new FormBuilder().group({
-    name: new FormControl('', [Validators.required]),
-    surname: new FormControl('', [Validators.required]),
-    file: new FormControl(null, [Validators.required]),
-  });
-
-  constructor(private candidatesService: CandidatesService) {}
+  constructor(
+    private candidatesService: CandidatesService,
+    private _snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
-    this.candidatesService.getCandidates().subscribe((candidates) => {
-      this.dataSource = new MatTableDataSource<Candidate>(candidates);
-      this.dataSource.paginator = this.paginator;
+    this.candidatesService.getCandidates().subscribe({
+      next: (candidates) => {
+        this.dataSource = new MatTableDataSource<Candidate>(candidates);
+        this.dataSource.paginator = this.paginator;
+      },
+      error: (error) => {
+        console.error('Error fetching candidates:', error);
+        this.openSnackBar('Error fetching candidates. Please try again later.');
+      },
     });
   }
 
@@ -88,6 +84,7 @@ export class CandidatesTableComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error deleting candidate:', error);
+        this.openSnackBar('Error deleting candidate. Please try again later.');
       },
     });
   }
@@ -98,82 +95,95 @@ export class CandidatesTableComponent implements OnInit {
     );
   }
 
-  addCandidate() {
-    if (this.candidateForm.valid) {
-      const newCandidate: CandidateDTO = {
-        name: this.candidateForm.value.name!,
-        surname: this.candidateForm.value.surname!,
-        seniority: this.candidateForm.value.seniority! as 'senior' | 'junior',
-        yearsOfExperience: this.candidateForm.value.yearsOfExperience!,
-        availability: this.candidateForm.value.availability!,
-      };
-      this.candidatesService
-        .addCandidate(newCandidate)
-        .subscribe((candidate) => {
-          this.dataSource.data = [...this.dataSource.data, candidate];
-          this.candidateForm.reset({ availability: true });
-        });
-      this.candidateForm.reset({ availability: true });
-    }
+  onCandidateAdded(candidateDTO: CandidateDTO) {
+    const newCandidate: CandidateDTO = {
+      name: candidateDTO.name,
+      surname: candidateDTO.surname,
+      seniority: candidateDTO.seniority as 'senior' | 'junior',
+      yearsOfExperience: candidateDTO.yearsOfExperience,
+      availability: candidateDTO.availability,
+    };
+    this.candidatesService.addCandidate(newCandidate).subscribe({
+      next: (candidate) => {
+        this.dataSource.data = [...this.dataSource.data, candidate];
+        this.candidateFormComponent.formReset();
+      },
+      error: (error) => {
+        console.error('Error adding candidate:', error);
+        this.openSnackBar('Error adding candidate. Please try again later.');
+      },
+    });
+    this.candidateFormComponent.formReset();
   }
 
-  addCandidateByFile() {
-    if (this.candidateByFileForm.valid) {
-      this.candidatesService
-        .addCandidateWithFile(
-          this.candidateByFileForm.value.name!,
-          this.candidateByFileForm.value.surname!,
-          this.candidateFile!
-        )
-        .subscribe((candidate) => {
+  onCandidatesAddedByFile(values: {
+    name: string;
+    surname: string;
+    file: File;
+  }) {
+    this.candidatesService
+      .addCandidateWithFile(values.name, values.surname, values.file)
+      .subscribe({
+        next: (candidate) => {
           this.dataSource.data = [...this.dataSource.data, candidate];
-          this.candidateByFileForm.reset();
-          this.candidateFile = null;
-        });
-    }
+          this.candidateFormWithFileComponent.formReset();
+        },
+        error: (error) => {
+          console.error('Error adding candidate with file:', error);
+          this.openSnackBar(
+            'Error adding candidate with file. Please try again later.'
+          );
+        },
+      });
   }
 
   editCandidate(candidate: Candidate) {
     this.editingCandidateId = candidate.id;
-    this.candidateForm.setValue({
-      name: candidate.name,
-      surname: candidate.surname,
-      seniority: candidate.seniority,
-      yearsOfExperience: candidate.yearsOfExperience,
-      availability: candidate.availability,
-    });
+    this.candidateFormComponent.setEditingCandidateValues(candidate);
   }
 
-  saveEditCandidate() {
-    if (this.candidateForm.valid && this.editingCandidateId !== null) {
-      const updatedCandidate: CandidateDTO = {
-        name: this.candidateForm.value.name!,
-        surname: this.candidateForm.value.surname!,
-        seniority: this.candidateForm.value.seniority! as 'senior' | 'junior',
-        yearsOfExperience: this.candidateForm.value.yearsOfExperience!,
-        availability: this.candidateForm.value.availability!,
-      };
+  onSaveEditCandidate(candidate: Candidate) {
+    const updatedCandidate: CandidateDTO = {
+      name: candidate.name,
+      surname: candidate.surname,
+      seniority: candidate.seniority as 'senior' | 'junior',
+      yearsOfExperience: candidate.yearsOfExperience,
+      availability: candidate.availability,
+    };
 
-      this.candidatesService
-        .updateCandidate(this.editingCandidateId, updatedCandidate)
-        .subscribe(() => {
+    this.candidatesService
+      .updateCandidate(candidate.id, updatedCandidate)
+      .subscribe({
+        next: () => {
           this.dataSource.data = this.dataSource.data.map((candidate) =>
             candidate.id === this.editingCandidateId
               ? { ...candidate, ...updatedCandidate }
               : candidate
           );
           this.cancelEditing();
-        });
-    }
+        },
+        error: (error) => {
+          console.error('Error updating candidate:', error);
+          this.openSnackBar(
+            'Error updating candidate. Please try again later.'
+          );
+        },
+      });
+  }
+
+  onEditingCancelled() {
+    this.cancelEditing();
   }
 
   cancelEditing() {
     this.editingCandidateId = null;
-    this.candidateForm.reset({ availability: true });
+    this.candidateFormComponent.formReset();
   }
 
-  onFileSelected(event: Event): void {
-    const files = (event.target as HTMLInputElement).files;
-    this.candidateFile = files ? files[0] : null;
+  openSnackBar(errorMessage: string) {
+    this._snackBar.open(errorMessage, 'Ok', {
+      horizontalPosition: 'end',
+      verticalPosition: 'bottom',
+    });
   }
 }
